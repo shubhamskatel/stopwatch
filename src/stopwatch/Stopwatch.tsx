@@ -1,12 +1,21 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useDispatch } from "react-redux";
+import { addLap, resetLaps } from "../Redux/reducers/reducer";
+import Button from "../components/Button";
+import Laps from "../components/Laps";
+import Timer from "../components/Timer";
 import "./Stopwatch.css";
 
 const Stopwatch = () => {
   const [time, setTime] = useState<number>(0);
   const [timerRunning, setTimerRunning] = useState<boolean>(false);
-  const [laps, setLaps] = useState<number[]>([]);
 
   const intervalId = useRef<NodeJS.Timeout | null>(null);
+
+  const dispatch = useDispatch();
+
+  ////////////////////////////
+  ////////////////// FUNCTIONS
 
   const handleStart = () => {
     setTimerRunning(true);
@@ -22,12 +31,8 @@ const Stopwatch = () => {
     }
   };
 
-  const handleLap = () => {
-    setLaps([...laps, time]);
-  };
-
   const handleReset = () => {
-    setLaps([]);
+    dispatch(resetLaps());
     setTimerRunning(false);
     setTime(0);
     if (intervalId.current !== null) {
@@ -35,58 +40,41 @@ const Stopwatch = () => {
     }
   };
 
-  useEffect(() => {
-    console.log(laps);
-  }, [laps]);
-
-  const formatTime = (timeInMilliseconds: number): string => {
-    const timeInSeconds = timeInMilliseconds / 1000;
-    const minutes = Math.floor(timeInSeconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const seconds = Math.floor(timeInSeconds % 60)
-      .toString()
-      .padStart(2, "0");
-    const milliseconds = Math.floor(
-      (timeInSeconds - Math.floor(timeInSeconds)) * 100
-    )
-      .toString()
-      .padStart(2, "0");
-
-    return `${minutes}:${seconds}.${milliseconds}`;
+  const handleLap = () => {
+    dispatch(addLap(time));
   };
 
   return (
     <>
       <div className="stopwatch">
         <h2>STOPWATCH</h2>
-        <h3>{formatTime(time)}</h3>
+        <Timer time={time} />
         <div className="button-group">
           {timerRunning ? (
-            <button className="stop-button" onClick={handlePause}>
+            <Button onClick={handlePause} classValue="button-pause">
               Pause
-            </button>
+            </Button>
           ) : (
-            <button className="start-button" onClick={handleStart}>
+            <Button onClick={handleStart} classValue="button-start">
               Start
-            </button>
+            </Button>
           )}
 
           {timerRunning ? (
-            <button className="lap-button" onClick={handleLap}>
+            <Button onClick={handleLap} classValue="button-lap">
               Lap
-            </button>
+            </Button>
           ) : (
-            <button className="reset-button" onClick={handleReset}>
+            <Button onClick={handleReset} classValue="button-reset">
               Reset
-            </button>
+            </Button>
           )}
         </div>
+
         <br />
+
         <div>
-          {laps.map((lap: number, index: number) => (
-            <div key={index}>{formatTime(lap)}</div>
-          ))}
+          <Laps />
         </div>
       </div>
     </>
